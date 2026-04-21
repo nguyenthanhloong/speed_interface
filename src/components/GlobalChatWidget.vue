@@ -26,7 +26,12 @@
           </button>
         </div>
 
-        <div class="chat-body" ref="chatBodyRef">
+        <div class="chat-body" ref="chatBodyRef" @scroll="handleScroll">
+          <div v-if="isLoadingMore" class="loading-more-indicator">
+            <div class="spinner"></div>
+            <span>Đang tải thêm...</span>
+          </div>
+
           <div class="time-divider">
             <span class="time-badge">Hôm nay</span>
           </div>
@@ -54,14 +59,39 @@
               </template>
             </div>
 
-            <div
-              class="message-bubble"
-              :class="[
-                msg.isMine ? 'bubble-mine' : 'bubble-other',
-                msg.isDeleted ? 'bubble-deleted' : '',
-              ]"
-            >
-              {{ msg.text }}
+            <div class="message-content-wrapper">
+              <button
+                v-if="msg.isMine && !msg.isDeleted"
+                class="btn-delete-msg"
+                @click="confirmDelete(msg.id)"
+                title="Thu hồi tin nhắn"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+
+              <div
+                class="message-bubble"
+                :class="[
+                  msg.isMine ? 'bubble-mine' : 'bubble-other',
+                  msg.isDeleted ? 'bubble-deleted' : '',
+                ]"
+              >
+                {{ msg.text }}
+              </div>
             </div>
           </div>
         </div>
@@ -169,6 +199,10 @@ const showEmoji = ref(false);
 const unreadCount = ref(0);
 let socket = null;
 
+const nextCursor = ref(null);
+const isLoadingMore = ref(false);
+const hasMore = ref(true);
+
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
@@ -194,6 +228,7 @@ const initChat = async () => {
   if (socket) return;
 
   try {
+    // Không truyền cursor => Lấy lô mới nhất
     const res = await chatService.getHistory();
     if (res.data && res.data.data) {
       messages.value = res.data.data.map((msg) => ({
@@ -205,6 +240,10 @@ const initChat = async () => {
         text: msg.content,
         isDeleted: msg.is_deleted || false,
       }));
+
+      // Lấy cursor để dành cho lần lướt lên tiếp theo
+      nextCursor.value = res.data.next_cursor;
+      hasMore.value = res.data.next_cursor !== null;
     }
   } catch (error) {
     console.error('Lỗi tải lịch sử chat:', error);
@@ -252,6 +291,70 @@ const initChat = async () => {
       }
     }
   };
+};
+
+// THÊM HÀM LOAD MORE KHI CUỘN LÊN TRÊN CÙNG
+const loadMoreMessages = async () => {
+  if (isLoadingMore.value || !hasMore.value || !nextCursor.value) return;
+
+  isLoadingMore.value = true;
+
+  // MẸO UX: Lưu lại chiều cao của khung chat TRƯỚC KHI nạp thêm dữ liệu
+  const previousScrollHeight = chatBodyRef.value.scrollHeight;
+
+  try {
+    const res = await chatService.getHistory(nextCursor.value);
+
+    if (res.data && res.data.data) {
+      const olderMessages = res.data.data.map((msg) => ({
+        id: msg.id,
+        isMine: msg.user_id === currentUser.value?.id,
+        kho: msg.kho,
+        sender: msg.sender_name,
+        time: msg.time,
+        text: msg.content,
+        isDeleted: msg.is_deleted || false,
+      }));
+
+      // Chèn tin nhắn cũ vào ĐẦU mảng hiện tại
+      messages.value = [...olderMessages, ...messages.value];
+
+      // Cập nhật lại con trỏ
+      nextCursor.value = res.data.next_cursor;
+      hasMore.value = res.data.next_cursor !== null;
+
+      // MẸO UX: Tính toán và đẩy thanh cuộn xuống một khoảng đúng bằng chiều cao của đống tin nhắn vừa chèn vào
+      nextTick(() => {
+        const newScrollHeight = chatBodyRef.value.scrollHeight;
+        chatBodyRef.value.scrollTop = newScrollHeight - previousScrollHeight;
+      });
+    }
+  } catch (error) {
+    console.error('Lỗi tải thêm tin nhắn:', error);
+  } finally {
+    isLoadingMore.value = false;
+  }
+};
+
+// THÊM HÀM LẮNG NGHE SỰ KIỆN CUỘN
+const handleScroll = (e) => {
+  // Nếu cuộn lên sát mí trên cùng (cách 10px để nhạy hơn)
+  if (e.target.scrollTop <= 10) {
+    loadMoreMessages();
+  }
+};
+
+const confirmDelete = async (msgId) => {
+  if (confirm('Bạn có chắc chắn muốn thu hồi tin nhắn này?')) {
+    try {
+      await chatService.deleteMessage(msgId);
+      // Gọi API thành công, Server sẽ bắn WebSocket 'delete_message' về cho toàn bộ công ty.
+      // Dòng code socket.onmessage của bạn sẽ tự động hứng và đổi text trên UI!
+    } catch (error) {
+      console.error('Lỗi khi thu hồi tin nhắn:', error);
+      alert('Không thể thu hồi tin nhắn lúc này.');
+    }
+  }
 };
 
 watch(
@@ -552,5 +655,63 @@ const sendMessage = () => {
   color: #64748b !important;
   background-color: #f1f5f9 !important;
   border: 1px dashed #cbd5e1 !important;
+}
+
+.loading-more-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cbd5e1;
+  border-top: 2px solid #0f3d26;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.message-content-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-delete-msg {
+  background: none;
+  border: none;
+  color: #ef4444; /* Màu đỏ cảnh báo */
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  opacity: 0; /* Ẩn đi mặc định để đỡ rối mắt */
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* KHI DI CHUỘT VÀO DÒNG TIN NHẮN THÌ HIỆN NÚT LÊN */
+.message-row:hover .btn-delete-msg {
+  opacity: 0.7;
+}
+
+.btn-delete-msg:hover {
+  opacity: 1 !important;
+  background-color: #fee2e2; /* Nền đỏ nhạt khi hover */
 }
 </style>
