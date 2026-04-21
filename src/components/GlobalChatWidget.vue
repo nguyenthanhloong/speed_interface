@@ -56,7 +56,10 @@
 
             <div
               class="message-bubble"
-              :class="msg.isMine ? 'bubble-mine' : 'bubble-other'"
+              :class="[
+                msg.isMine ? 'bubble-mine' : 'bubble-other',
+                msg.isDeleted ? 'bubble-deleted' : '',
+              ]"
             >
               {{ msg.text }}
             </div>
@@ -200,6 +203,7 @@ const initChat = async () => {
         sender: msg.sender_name,
         time: msg.time,
         text: msg.content,
+        isDeleted: msg.is_deleted || false,
       }));
     }
   } catch (error) {
@@ -219,21 +223,33 @@ const initChat = async () => {
 
   socket = new WebSocket(wsUrl);
   socket.onmessage = (event) => {
-    const incomingData = JSON.parse(event.data);
+    const data = JSON.parse(event.data);
 
-    messages.value.push({
-      id: incomingData.id,
-      isMine: incomingData.user_id === currentUser.value?.id,
-      kho: incomingData.kho,
-      sender: incomingData.sender_name,
-      time: incomingData.time,
-      text: incomingData.content,
-    });
+    if (data.type === 'new_message') {
+      const exists = messages.value.find((m) => m.id === data.id);
+      if (!exists) {
+        messages.value.push({
+          id: data.id,
+          isMine: data.user_id === currentUser.value?.id,
+          kho: data.kho,
+          sender: data.sender_name,
+          time: data.time,
+          text: data.content,
+          isDeleted: data.is_deleted || false,
+        });
 
-    if (isOpen.value) {
-      scrollToBottom();
-    } else {
-      unreadCount.value++;
+        if (isOpen.value) {
+          scrollToBottom();
+        } else {
+          unreadCount.value++;
+        }
+      }
+    } else if (data.type === 'delete_message') {
+      const msgIndex = messages.value.findIndex((m) => m.id === data.id);
+      if (msgIndex !== -1) {
+        messages.value[msgIndex].text = 'Tin nhắn đã bị thu hồi';
+        messages.value[msgIndex].isDeleted = true;
+      }
     }
   };
 };
@@ -529,5 +545,12 @@ const sendMessage = () => {
 .slide-fade-leave-to {
   transform: translateY(20px);
   opacity: 0;
+}
+
+.bubble-deleted {
+  font-style: italic !important;
+  color: #64748b !important;
+  background-color: #f1f5f9 !important;
+  border: 1px dashed #cbd5e1 !important;
 }
 </style>
