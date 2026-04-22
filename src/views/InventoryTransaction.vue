@@ -2498,8 +2498,7 @@ const autoFillItem = (item) => {
     // ✅ TẠO TÊN SẢN PHẨM RÕ RÀNG (CÓ TAG MỚI/CŨ CHO VIP)
     let displayName = item.ten_san_pham;
     if (customerMode.value === 'VIP') {
-      const model = item.ten_san_pham.replace('Mã máy: ', '').trim();
-      displayName = `${model}`;
+      displayName = 'N/A';
     }
 
     form.value.noi_bo_items.push({
