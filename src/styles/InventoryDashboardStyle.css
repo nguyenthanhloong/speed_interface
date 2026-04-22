@@ -1,99 +1,160 @@
-/* Toàn bộ CSS giữ nguyên */
+/* Toàn bộ CSS giữ nguyên Logic nhưng Nâng Cấp Giao Diện */
 .dashboard-wrapper {
-  max-width: 1200px;
+  max-width: 1280px; /* Thống nhất với admin.css */
   margin: 0 auto;
 }
+
+.page-header {
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.title-group h2 {
+  font-size: 1.8rem;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
 .admin-view-selector {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: white;
+  gap: 12px;
+  background: var(--bg-card);
   padding: 12px 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
 }
 .admin-view-selector .label {
-  font-weight: bold;
-  color: #ef4444;
+  font-weight: 700;
+  color: var(--danger);
   margin-right: 10px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
 }
 .btn-tab {
-  padding: 8px 16px;
-  border: 1px solid #e2e8f0;
+  padding: 8px 18px;
+  border: 1px solid var(--border-color);
   background: white;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  color: #64748b;
-  font-weight: 500;
-  transition: all 0.2s;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  font-size: 0.95rem;
 }
 .btn-tab:hover {
   background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 .btn-tab.active {
-  background: #0f3d26;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
   color: white;
-  border-color: #0f3d26;
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(15, 61, 38, 0.2);
 }
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 24px;
 }
 .summary-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  gap: 20px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
 }
+
+/* Ánh sáng chạy ngang khi hover */
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg);
+  transition: all 0.75s;
+}
+
+.summary-card:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+}
+
+.summary-card:hover::before {
+  left: 200%;
+}
+
 .card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 .bg-blue {
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
 }
 .bg-green {
-  background-color: #10b981;
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.25);
 }
 .bg-orange {
-  background-color: #f59e0b;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.25);
 }
 .bg-purple {
-  background-color: #8b5cf6;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.25);
 }
 .card-label {
   margin: 0;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 .card-value {
-  margin: 5px 0 0 0;
-  font-size: 1.5rem;
-  color: #1e293b;
+  margin: 8px 0 0 0;
+  font-size: 1.8rem;
+  color: var(--text-main);
+  font-weight: 700;
 }
+.card-value small {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .history-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
-  background: #fafafa;
-  border-radius: 12px 12px 0 0;
+  padding: 20px 24px;
+  border-bottom: 2px solid var(--border-color);
+  background: rgba(250, 250, 250, 0.5);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .spin {
-  animation: spin 1s linear infinite;
+  animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 @keyframes spin {
   100% {
@@ -102,41 +163,54 @@
 }
 .stock-bar-container {
   width: 100%;
-  height: 8px;
-  background-color: #e2e8f0;
-  border-radius: 4px;
+  height: 10px;
+  background-color: #f1f5f9;
+  border-radius: 8px;
   overflow: hidden;
   margin-top: 5px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Đổ bóng lõm bên trong thanh ngang */
 }
 .stock-bar-fill {
   height: 100%;
-  background-color: #10b981;
-  border-radius: 4px;
-  transition: width 0.5s ease-in-out;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #34d399, #10b981); /* gradient cho thanh xanh */
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); /* mượt mà hơn */
 }
+/* Tuỳ chọn nếu là màu cam (CŨ trong v-bind của vue, nhưng ở đây có style sẵn) */
+.stock-bar-fill[style*="background-color: #f59e0b"] {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b) !important;
+}
+
 /* NÚT QUAY LẠI */
 .btn-back {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
+  padding: 0.5rem 1rem;
   background: transparent;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  color: #64748b;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all var(--transition-normal);
 }
 
 .btn-back:hover {
-  background: #f8fafc;
-  color: #0f3d26;
+  background: #ffffff;
+  color: var(--primary);
   border-color: #cbd5e1;
+  box-shadow: var(--shadow-sm);
+  transform: translateX(-2px); /* Bay nhẹ sang trái cho đúng nghĩa back */
 }
 
 .icon-sm {
   width: 18px;
   height: 18px;
 }
+.icon-md {
+  width: 28px;
+  height: 28px;
+}
+

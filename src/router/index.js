@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { useToast } from '../composables/useToast';
 
 const routes = [
     {
@@ -174,6 +175,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
+    const toast = useToast();
     const isAuthenticated = authStore.isAuthenticated;
 
     if (to.meta.requiresAuth && !isAuthenticated) {
@@ -195,7 +197,8 @@ router.beforeEach(async (to, from, next) => {
 
     if (to.meta.requiresPermission) {
         if (!authStore.hasPermission(to.meta.requiresPermission)) {
-            console.warn(`Chặn truy cập! Thiếu quyền: ${to.meta.requiresPermission}`);
+            // console.warn(`Chặn truy cập! Thiếu quyền: ${to.meta.requiresPermission}`);
+            toast.error('Bạn không có quyền truy cập vào trang này!');
             return next('/403');
         }
     }
@@ -206,7 +209,8 @@ router.beforeEach(async (to, from, next) => {
         );
 
         if (!hasAccess) {
-            console.warn(`Chặn truy cập! Cần ít nhất 1 trong các quyền: ${to.meta.requiresAnyPermission.join(', ')}`);
+            // console.warn(`Chặn truy cập! Cần ít nhất 1 trong các quyền: ${to.meta.requiresAnyPermission.join(', ')}`);
+            toast.error('Bạn không có quyền truy cập vào trang này!');
             return next('/403');
         }
     }

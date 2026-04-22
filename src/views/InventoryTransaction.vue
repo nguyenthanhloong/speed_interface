@@ -512,12 +512,6 @@
                   type="text"
                   v-model="form.ma_san_pham"
                   placeholder="Không bắt buộc (Để trống nếu không có)"
-                  :disabled="isExportAction"
-                  :style="
-                    isExportAction
-                      ? 'background-color: #f8f9fa; cursor: not-allowed; font-weight: bold;'
-                      : ''
-                  "
                 />
               </div>
 
@@ -1479,7 +1473,8 @@ const loadCatalogProducts = async () => {
     const res = await productService.getProducts(0, 5000);
     catalogProducts.value = res.data.data;
   } catch (error) {
-    console.error('Lỗi tải danh mục sản phẩm:', error);
+    // console.error('Lỗi tải danh mục sản phẩm:', error);
+    toast.error('Không thể tải danh mục sản phẩm từ máy chủ.');
   }
 };
 
@@ -1508,7 +1503,8 @@ const handleVehicleInput = (e) => {
       );
       filteredVehicles.value = res.data;
     } catch (err) {
-      console.error(err);
+      // console.error(err);
+      toast.error('Không thể tải danh sách xe từ máy chủ.');
     }
   }, 300);
 };
@@ -2019,7 +2015,7 @@ const handleDirectExcelUpload = async (event) => {
       fetchCustomerInventory();
     }
   } catch (err) {
-    console.error(err);
+    // console.error(err);
 
     let errorMsg = 'Vui lòng kiểm tra lại file Excel.';
     if (err.response?.data?.detail) {
@@ -2047,7 +2043,8 @@ const loadShippingPartners = async () => {
     const res = await shippingPartnerService.getPartners(0, 1000);
     shippingPartners.value = res.data.data;
   } catch (error) {
-    console.error('Lỗi lấy danh sách đối tác vận chuyển:', error);
+    // console.error('Lỗi lấy danh sách đối tác vận chuyển:', error);
+    toast.error('Không thể tải danh sách đối tác vận chuyển từ máy chủ.');
   }
 };
 
@@ -2218,7 +2215,8 @@ const loadUserProfile = async () => {
       form.value.ma_kho_spl = currentUserKho.value;
     }
   } catch (error) {
-    console.error('Lỗi tải user profile:', error);
+    // console.error('Lỗi tải user profile:', error);
+    toast.error('Không thể tải thông tin người dùng từ máy chủ.');
   }
 };
 
@@ -2226,9 +2224,10 @@ const loadCustomers = async () => {
   try {
     const res = await customerService.getCustomers(0, 1000);
     customers.value = res.data.data;
-    console.log(res.data.data);
+    // console.log(res.data.data);
   } catch (error) {
-    console.error('Lỗi lấy danh sách KH:', error);
+    // console.error('Lỗi lấy danh sách KH:', error);
+    toast.error('Không thể tải danh sách khách hàng từ máy chủ.');
   }
 };
 
@@ -2237,7 +2236,8 @@ const loadShippers = async () => {
     const res = await shipperService.getShippers();
     shippers.value = res.data;
   } catch (error) {
-    console.error('Lỗi lấy danh sách Shippers:', error);
+    // console.error('Lỗi lấy danh sách Shippers:', error);
+    toast.error('Không thể tải danh sách người giao hàng từ máy chủ.');
   }
 };
 
@@ -2246,7 +2246,8 @@ const loadLocations = async () => {
     const res = await viTriKhoService.getViTriKho();
     locations.value = res.data;
   } catch (error) {
-    console.error('Lỗi lấy danh sách kho:', error);
+    // console.error('Lỗi lấy danh sách kho:', error);
+    toast.error('Không thể tải danh sách kho từ máy chủ.');
   }
 };
 
@@ -2427,7 +2428,8 @@ const fetchCustomerInventory = async () => {
       }
     }
   } catch (error) {
-    console.error('Lỗi khi tải tồn kho:', error);
+    // console.error('Lỗi khi tải tồn kho:', error);
+    toast.error('Không thể tải tồn kho từ máy chủ.');
   } finally {
     isLoadingInventory.value = false;
   }
@@ -2683,7 +2685,7 @@ const handleSubmit = async () => {
     return String(text).trim().replace(/\s+/g, ' ');
   };
 
-  console.log(form.value.so_kien);
+  // console.log(form.value.so_kien);
 
   form.value.ten_san_pham = sanitizeText(form.value.ten_san_pham);
   form.value.ma_san_pham = sanitizeText(form.value.ma_san_pham);
@@ -2915,7 +2917,7 @@ const handleSubmit = async () => {
         ghi_chu: form.value.ghi_chu,
         so_kien: form.value.so_kien,
       };
-      console.log(payload);
+      // console.log(payload);
       await inventoryService.exportRegular(payload);
     } else if (currentAction.value.includes('NOIBO')) {
       const itemsToSend = form.value.noi_bo_items.map((item) => {
@@ -2941,7 +2943,7 @@ const handleSubmit = async () => {
         ghi_chu: form.value.ghi_chu,
         items: itemsToSend,
       };
-      console.log('Payload luân chuyển nội bộ:', payload);
+      // console.log('Payload luân chuyển nội bộ:', payload);
       await inventoryService.exportNoiBo(payload);
     }
 
