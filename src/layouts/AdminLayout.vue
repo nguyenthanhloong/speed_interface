@@ -227,7 +227,7 @@ const executeLogout = () => {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-  z-index: 5;
+  z-index: 13;
 }
 .user-profile {
   display: flex;
