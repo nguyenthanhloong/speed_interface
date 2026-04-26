@@ -91,7 +91,7 @@ const connectWebSocket = () => {
   const token = localStorage.getItem('token') || authStore.token;
   if (!token) return;
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
   const wsBaseUrl = apiUrl.replace(/^http/, 'ws');
 
