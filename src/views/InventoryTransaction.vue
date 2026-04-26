@@ -2573,7 +2573,7 @@ const autoFillItem = (item) => {
         item.dia_chi_giao_hang.trim() === ''
       ) {
         toast.info(
-          'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Bổ Sung Dữ Liệu" để cập nhật trước khi luân chuyển.'
+          'Thông tin chưa đầy đủ! Vui lòng chuyển sang "Khai Thác Kho Hàng" để cập nhật trước giao hàng.'
         );
         return;
       }
@@ -2585,7 +2585,7 @@ const autoFillItem = (item) => {
         item.dia_chi_giao_hang.trim() === ''
       ) {
         toast.info(
-          'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Bổ Sung Dữ Liệu" để cập nhật trước khi luân chuyển.'
+          'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Khai Thác Kho Hàng" để cập nhật trước giao hàng.'
         );
         return;
       }
@@ -2603,7 +2603,7 @@ const autoFillItem = (item) => {
         item.ma_bill.trim() === ''
       ) {
         toast.info(
-          'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Bổ Sung Dữ Liệu" để cập nhật trước khi luân chuyển.'
+          'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Khai Thác Kho Hàng" để cập nhật trước giao hàng.'
         );
         return;
       }
