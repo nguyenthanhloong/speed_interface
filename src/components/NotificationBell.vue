@@ -55,12 +55,16 @@
 import { ref, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { inventoryService } from '../services/inventory';
 import { Bell, Package } from 'lucide-vue-next';
+import { useAuthStore } from '../stores/auth';
+
+const authStore = useAuthStore();
 
 const notifications = ref([]);
 const unreadCount = ref(0);
 const showNotifDropdown = ref(false);
 const notifRef = ref(null);
-let pollingInterval = null;
+
+let ws = null;
 
 const toggleNotification = () => {
   showNotifDropdown.value = !showNotifDropdown.value;
@@ -76,11 +80,42 @@ const handleClickOutside = (event) => {
 const fetchNotifications = async () => {
   try {
     const res = await inventoryService.getUnreadNotifications();
-    notifications.value = res.data;
+    notifications.value = res.data.data || res.data;
     unreadCount.value = notifications.value.length;
   } catch (error) {
     console.error('Lỗi tải thông báo', error);
   }
+};
+
+const connectWebSocket = () => {
+  const token = localStorage.getItem('token') || authStore.token;
+  if (!token) return;
+
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  const wsBaseUrl = apiUrl.replace(/^http/, 'ws');
+
+  const wsUrl = `${wsBaseUrl}/api/ws/notifications?token=${token}`;
+
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    console.log('Đã kết nối WebSocket Thông báo: ', wsUrl);
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const newNotif = JSON.parse(event.data);
+      notifications.value.unshift(newNotif);
+      unreadCount.value += 1;
+    } catch (err) {
+      console.error('Lỗi parse data WebSocket', err);
+    }
+  };
+
+  ws.onclose = () => {
+    console.log('Đã ngắt kết nối WebSocket Thông báo');
+  };
 };
 
 const markAsRead = async (id) => {
@@ -88,13 +123,16 @@ const markAsRead = async (id) => {
     await inventoryService.markNotificationRead(id);
     notifications.value = notifications.value.filter((n) => n.id !== id);
     unreadCount.value = notifications.value.length;
+
+    if (notifications.value.length === 0) {
+      showNotifDropdown.value = false;
+    }
   } catch (error) {
     console.error(error);
   }
 };
 
 const markAllAsRead = async () => {
-  // Tùy chọn: Bạn có thể viết thêm API markAllRead ở backend
   for (let n of notifications.value) {
     await markAsRead(n.id);
   }
@@ -123,8 +161,7 @@ const formatTime = (dateStr) => {
 
 onMounted(() => {
   fetchNotifications();
-  // Gọi lại API mỗi 30 giây
-  pollingInterval = setInterval(fetchNotifications, 30000);
+  connectWebSocket();
   document.addEventListener('click', handleClickOutside);
 });
 
@@ -133,7 +170,11 @@ onBeforeUnmount(() => {
 });
 
 onUnmounted(() => {
-  clearInterval(pollingInterval);
+  document.removeEventListener('click', handleClickOutside);
+  // Ngắt kết nối để không tốn tài nguyên trình duyệt khi chuyển trang
+  if (ws) {
+    ws.close();
+  }
 });
 </script>
 

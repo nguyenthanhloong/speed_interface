@@ -15,7 +15,8 @@
                 Duyệt Phiếu Luân Chuyển
               </h2>
               <p class="text-muted m-0 mt-1">
-                Quản lý và xét duyệt các lô hàng đang di chuyển đến kho của bạn.
+                Quản lý và xét duyệt các lô hàng xuất đi và nhập đến kho của
+                bạn.
               </p>
             </div>
           </div>
@@ -34,6 +35,37 @@
         </div>
       </div>
 
+      <div class="modern-tabs-container mb-4">
+        <button
+          class="modern-tab-btn"
+          :class="{ active: currentTab === 'SOURCE' }"
+          @click="currentTab = 'SOURCE'"
+        >
+          <ArrowUpFromLine class="icon-sm mr-2" />
+          Chờ Duyệt Xuất
+          <span
+            v-if="pendingSourceRequests.length > 0"
+            class="tab-badge badge-warning"
+          >
+            {{ pendingSourceRequests.length }}
+          </span>
+        </button>
+        <button
+          class="modern-tab-btn"
+          :class="{ active: currentTab === 'DESTINATION' }"
+          @click="currentTab = 'DESTINATION'"
+        >
+          <ArrowDownToLine class="icon-sm mr-2" />
+          Chờ Duyệt Nhận
+          <span
+            v-if="pendingDestinationRequests.length > 0"
+            class="tab-badge badge-primary"
+          >
+            {{ pendingDestinationRequests.length }}
+          </span>
+        </button>
+      </div>
+
       <div
         class="card p-0 shadow-sm"
         style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden"
@@ -46,7 +78,7 @@
           <h5 style="font-weight: 600">Đang đồng bộ dữ liệu...</h5>
         </div>
 
-        <div v-else-if="pendingRequests.length === 0" class="text-center p-5">
+        <div v-else-if="displayedRequests.length === 0" class="text-center p-5">
           <div
             style="
               background: #ecfdf5;
@@ -62,10 +94,18 @@
             <CheckCircle style="width: 40px; height: 40px; color: #10b981" />
           </div>
           <h4 style="text-align: center; color: #0f172a; font-weight: 700">
-            Không có phiếu chờ duyệt!
+            {{
+              currentTab === 'SOURCE'
+                ? 'Không có phiếu chờ xuất!'
+                : 'Không có phiếu chờ nhận!'
+            }}
           </h4>
           <p style="text-align: center" class="text-muted">
-            Hiện tại không có chuyến hàng nào đang hướng về kho của bạn.
+            {{
+              currentTab === 'SOURCE'
+                ? 'Hiện tại không có lô hàng nào cần bạn duyệt xuất kho.'
+                : 'Hiện tại không có chuyến hàng nào đang hướng về kho của bạn.'
+            }}
           </p>
         </div>
 
@@ -89,7 +129,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="req in pendingRequests" :key="req.id">
+              <tr v-for="req in displayedRequests" :key="req.id">
                 <td>
                   <span
                     class="fw-bold"
@@ -515,7 +555,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useToast } from '../composables/useToast';
 import { inventoryService } from '../services/inventory';
 import DefaultLayout from '../layouts/DefaultLayout.vue';
@@ -530,10 +570,33 @@ import {
   Truck,
   MapPin,
   ArrowLeft,
+  ArrowUpFromLine,
+  ArrowDownToLine,
 } from 'lucide-vue-next';
 
 const toast = useToast();
+
+// Dữ liệu gốc chứa tất cả
 const pendingRequests = ref([]);
+
+// Tab hiện tại ('SOURCE' hoặc 'DESTINATION')
+const currentTab = ref('SOURCE');
+
+// Computed chia mảng
+const pendingSourceRequests = computed(() =>
+  pendingRequests.value.filter((r) => r.trang_thai === 'PENDING_SOURCE')
+);
+
+const pendingDestinationRequests = computed(() =>
+  pendingRequests.value.filter((r) => r.trang_thai === 'PENDING_DESTINATION')
+);
+
+const displayedRequests = computed(() =>
+  currentTab.value === 'SOURCE'
+    ? pendingSourceRequests.value
+    : pendingDestinationRequests.value
+);
+
 const isLoading = ref(false);
 const isRejectingMode = ref(false);
 const isProcessing = ref(false);
@@ -557,7 +620,21 @@ const fetchPendingRequests = async () => {
   try {
     const res = await inventoryService.getPendingNoiBo();
     pendingRequests.value = res.data.data;
-    // console.log('Danh sách chờ duyệt:', pendingRequests.value);
+
+    // Tự động chuyển tab nếu tab hiện tại rỗng nhưng tab kia có dữ liệu
+    if (pendingRequests.value.length > 0) {
+      if (
+        currentTab.value === 'SOURCE' &&
+        pendingSourceRequests.value.length === 0
+      ) {
+        currentTab.value = 'DESTINATION';
+      } else if (
+        currentTab.value === 'DESTINATION' &&
+        pendingDestinationRequests.value.length === 0
+      ) {
+        currentTab.value = 'SOURCE';
+      }
+    }
   } catch (error) {
     toast.error('Lỗi khi lấy danh sách chờ duyệt!');
   } finally {
@@ -578,7 +655,7 @@ const handleReject = () => {
     toast.info('Vui lòng nhập lý do từ chối vào ô Ghi chú.');
   } else {
     if (!approveNote.value.trim()) {
-      toast.error('Lỗi: Bạn phải nhập lý do để báo về cho Kho Xuất!');
+      toast.error('Lỗi: Bạn phải nhập lý do để báo về cho hệ thống!');
       return;
     }
     submitAction('REJECT');
@@ -593,14 +670,16 @@ const submitAction = async (actionType) => {
       action_type: actionType,
       ghi_chu_duyet: approveNote.value,
     });
-    if (actionType === 'APPROVE')
+
+    if (actionType === 'APPROVE') {
       toast.success(`Đã CHẤP NHẬN phiếu ${selectedRequest.value.ma_bill}!`);
-    else toast.info(`Đã TỪ CHỐI phiếu ${selectedRequest.value.ma_bill}.`);
+    } else {
+      toast.info(`Đã TỪ CHỐI phiếu ${selectedRequest.value.ma_bill}.`);
+    }
 
     showModal.value = false;
     await fetchPendingRequests();
   } catch (error) {
-    // console.error(error);
     toast.info(error.response?.data?.detail || 'Lỗi hệ thống khi xử lý phiếu!');
   } finally {
     isProcessing.value = false;
@@ -646,6 +725,80 @@ onMounted(() => {
   text-align: center;
 }
 
+/* =========================================================
+   TABS HIỆN ĐẠI
+========================================================= */
+.modern-tabs-container {
+  display: flex;
+  gap: 12px;
+  background: white;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid #e2e8f0;
+  width: fit-content;
+}
+
+.modern-tab-btn {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #64748b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modern-tab-btn:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.modern-tab-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 10px rgba(15, 61, 38, 0.2);
+}
+
+.modern-tab-btn.active .icon-sm {
+  color: white !important;
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border-radius: 20px;
+}
+
+.modern-tab-btn .badge-warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.modern-tab-btn.active .badge-warning {
+  background: white;
+  color: var(--primary);
+}
+
+.modern-tab-btn .badge-primary {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.modern-tab-btn.active .badge-primary {
+  background: white;
+  color: var(--primary);
+}
+
 /* Bảng Main Danh Sách */
 .table-modern {
   width: 100%;
@@ -665,8 +818,9 @@ onMounted(() => {
   border-bottom: 2px solid var(--border-color);
 }
 .table-modern td {
-  padding: 18px 20px;
+  padding: 18px 0;
   vertical-align: middle;
+  text-align: center;
   border-bottom: 1px solid #f1f5f9;
   transition: background var(--transition-fast);
 }
@@ -677,6 +831,7 @@ onMounted(() => {
 .route-container {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 .route-badge {
   font-weight: 700;

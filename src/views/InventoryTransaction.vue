@@ -432,7 +432,11 @@
                 <label>
                   Mã Sản Phẩm
                   <span
-                    v-if="['VIP_IMPORT_NEW'].includes(currentAction)"
+                    v-if="
+                      ['VIP_IMPORT_NEW', 'VIP_IMPORT_OLD'].includes(
+                        currentAction
+                      )
+                    "
                     class="text-danger"
                     >*</span
                   >
@@ -457,7 +461,7 @@
                     currentAction === 'VIP_IMPORT_NEW'
                       ? 'Gõ tìm mã SP, Tên SP hoặc Mã Máy...'
                       : currentAction === 'VIP_IMPORT_OLD'
-                      ? 'Tự động điền từ Mã Máy hoặc gõ tay...'
+                      ? 'Tự động điền từ Mã Máy hoặc nhập tay...'
                       : 'Tự động điền khi chọn hàng...'
                   "
                   autocomplete="off"
@@ -901,6 +905,7 @@
                 class="form-group"
                 v-if="
                   customerMode === 'VIP' ||
+                  currentAction === 'THUONG_IMPORT' ||
                   isExportAction ||
                   currentAction.includes('NOIBO')
                 "
@@ -1289,6 +1294,7 @@
                               required
                             />
                           </div>
+
                           <div>
                             <label
                               style="
@@ -1315,9 +1321,46 @@
               </template>
             </div>
 
+            <div
+              class="form-group full-width mt-3"
+              v-if="!currentAction.includes('NOIBO')"
+            >
+              <div
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px"
+              >
+                <div>
+                  <label>
+                    Địa Chỉ Giao Hàng
+                    <span v-if="isExportAction" class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    v-model="form.dia_chi_giao_hang"
+                    :required="isExportAction"
+                    placeholder="Số nhà, tên đường, phường/xã..."
+                    class="form-control"
+                  />
+                </div>
+                <div>
+                  <label>
+                    Tỉnh / Thành Phố
+                    <span v-if="isExportAction" class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    v-model="form.tinh_thanh"
+                    :required="isExportAction"
+                    placeholder="VD: TP. Hồ Chí Minh, Hà Nội..."
+                    class="form-control"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div class="form-group full-width mt-3">
-              <label>Ghi Chú</label>
+              <label v-if="!currentAction.includes('NOIBO')">Ghi Chú</label>
               <textarea
+                v-if="!currentAction.includes('NOIBO')"
                 v-model="form.ghi_chu"
                 rows="2"
                 placeholder="Ghi chú thêm nếu có..."
@@ -1442,6 +1485,8 @@ const form = ref({
   ngay_nhap_kho_hien_thi: '',
   kho_nhan: '',
   doi_tac_van_chuyen: '',
+  dia_chi_giao_hang: '',
+  tinh_thanh: '',
   noi_bo_items: [
     {
       ma_sp_hoac_id: '',
@@ -1452,6 +1497,8 @@ const form = ref({
       so_kien: 1,
       trong_luong: 0,
       kich_thuoc: '',
+      tinh_thanh: '',
+      dia_chi_giao_hang: '',
       ghi_chu: '',
     },
   ],
@@ -1663,6 +1710,8 @@ const downloadImportTemplate = () => {
         'MÃ BILL',
         'PXK Kho TSB',
         'PXK VP TSB',
+        'Địa Chỉ',
+        'Tỉnh Thành',
         'Ngày Nhập',
         'Ghi chú',
       ],
@@ -1673,6 +1722,8 @@ const downloadImportTemplate = () => {
         'BILL-2026-001',
         'PXK-001',
         'VP-001',
+        'Quận 1',
+        'TP HCM',
         '01/04/2026',
         'Mẫu nhập VIP',
       ],
@@ -1680,26 +1731,49 @@ const downloadImportTemplate = () => {
     filename = 'Bieu_Mau_Nhap_VIP.xlsx';
   } else if (currentAction.value === 'VIP_IMPORT_OLD') {
     ws_data = [
-      ['MÃ MÁY', 'MÃ SP', 'SỐ SERIAL CŨ', 'MÃ BILL', 'Ghi chú'],
+      [
+        'MÃ MÁY',
+        'MÃ SP',
+        'SỐ SERIAL CŨ',
+        'MÃ BILL',
+        'Địa Chỉ',
+        'Tỉnh Thành',
+        'Ghi chú',
+      ],
       [
         'TOSHIBA-7.5KG',
         'SP001',
         'SN-OLD-123',
         'BILL-TRA-001',
+        'Quận 2',
+        'TP HCM',
         'Khách trả hàng',
       ],
     ];
     filename = 'Bieu_Mau_Nhap_Cu_VIP.xlsx';
   } else if (currentAction.value === 'THUONG_IMPORT') {
     ws_data = [
-      ['MÃ SP', 'TÊN SẢN PHẨM', 'SỐ LƯỢNG', 'SỐ KIỆN', 'Ngày Nhập', 'Ghi chú'],
+      [
+        'MÃ SP',
+        'TÊN SẢN PHẨM',
+        'MÃ BILL',
+        'SỐ LƯỢNG',
+        'SỐ KIỆN',
+        'Địa Chỉ',
+        'Tỉnh Thành',
+        'Ngày Nhập',
+        'Ghi chú',
+      ],
       [
         'SP002',
         'Máy giặt Panasonic',
+        'BILL-2026-001',
         10,
         2,
+        'Quận 3',
+        'TP HCM',
         '01/04/2026',
-        `Mẫu nhập khách ${customerMode.value}`,
+        `Ghi chú ${customerMode.value}`,
       ],
     ];
     filename = `Bieu_Mau_Nhap_${customerMode.value}.xlsx`;
@@ -1888,6 +1962,17 @@ const handleDirectExcelUpload = async (event) => {
               pxk_vp_tsb: String(
                 getVal(row, ['PXK VP TSB', 'PXK VP TSB', 'pxk_vp_tsb']) || ''
               ),
+              dia_chi_giao_hang: String(
+                getVal(row, ['Địa Chỉ', 'Địa chỉ', 'ĐỊA CHỈ', 'dia_chi']) || ''
+              ),
+              tinh_thanh: String(
+                getVal(row, [
+                  'Tỉnh Thành',
+                  'Tỉnh thành',
+                  'TỈNH THÀNH',
+                  'tinh_thanh',
+                ]) || ''
+              ),
               ngay: formatExcelDate(
                 getVal(row, ['Ngày', 'Ngày Nhập', 'Ngày nhập kho'])
               ),
@@ -1925,9 +2010,21 @@ const handleDirectExcelUpload = async (event) => {
                   getVal(row, ['Ghi chú', 'Ghi Chú', 'GHI CHÚ', 'ghi_chu']) ||
                     ''
                 ),
+                dia_chi_giao_hang: String(
+                  getVal(row, ['Địa Chỉ', 'Địa chỉ', 'ĐỊA CHỈ', 'dia_chi']) ||
+                    ''
+                ),
+                tinh_thanh: String(
+                  getVal(row, [
+                    'Tỉnh Thành',
+                    'Tỉnh thành',
+                    'TỈNH THÀNH',
+                    'tinh_thanh',
+                  ]) || ''
+                ),
                 ma_kho_spl: String(maKho),
               }))
-              .filter((item) => item.ma_may !== ''); // Bỏ qua các dòng trống không có mã máy
+              .filter((item) => item.ma_may !== '');
           } else if (currentAction.value === 'THUONG_IMPORT') {
             filePayload = json.map((row) => ({
               id: parseInt(row['ID']) || 0,
@@ -1944,6 +2041,11 @@ const handleDirectExcelUpload = async (event) => {
                   'ten_san_pham',
                 ]) || ''
               ),
+              ma_bill: String(
+                getVal(row, ['MÃ BILL', 'Mã Bill', 'Bill', 'ma_bill']) ||
+                  form.value.ma_bill ||
+                  ''
+              ),
               so_luong:
                 parseInt(getVal(row, ['SỐ LƯỢNG', 'Số Lượng', 'so_luong'])) ||
                 1,
@@ -1953,6 +2055,17 @@ const handleDirectExcelUpload = async (event) => {
                 ) || 1,
               ghi_chu: String(
                 getVal(row, ['Ghi chú', 'Ghi Chú', 'ghi_chu']) || ''
+              ),
+              dia_chi_giao_hang: String(
+                getVal(row, ['Địa Chỉ', 'Địa chỉ', 'ĐỊA CHỈ', 'dia_chi']) || ''
+              ),
+              tinh_thanh: String(
+                getVal(row, [
+                  'Tỉnh Thành',
+                  'Tỉnh thành',
+                  'TỈNH THÀNH',
+                  'tinh_thanh',
+                ]) || ''
               ),
               ngay: formatExcelDate(
                 getVal(row, ['Ngày', 'Ngày Nhập', 'Ngày nhập kho'])
@@ -2106,7 +2219,7 @@ const ALL_ACTIONS = [
     mode: 'VIP',
     type: 'IMPORT',
     perm: 'FUNC_VIP_NHAP_MOI',
-    title: 'Gửi Hàng Mới',
+    title: 'Nhập Hàng Mới',
     desc: 'Nhập kho thiết bị mới',
     icon: ArrowDownToLine,
   },
@@ -2115,8 +2228,8 @@ const ALL_ACTIONS = [
     mode: 'VIP',
     type: 'EXPORT',
     perm: 'FUNC_VIP_XUAT_MOI',
-    title: 'Yêu Cầu Giao Hàng',
-    desc: 'Xuất kho giao cho khách',
+    title: 'Giao Hàng Mới',
+    desc: 'Xuất hàng mới',
     icon: ArrowUpFromLine,
   },
   {
@@ -2124,7 +2237,7 @@ const ALL_ACTIONS = [
     mode: 'VIP',
     type: 'IMPORT',
     perm: 'FUNC_VIP_NHAP_CU',
-    title: 'Khách Trả Lại',
+    title: 'Nhập Hàng Cũ',
     desc: 'Nhập lại hàng cũ',
     icon: RefreshCcw,
   },
@@ -2133,7 +2246,7 @@ const ALL_ACTIONS = [
     mode: 'VIP',
     type: 'EXPORT',
     perm: 'FUNC_VIP_XUAT_CU',
-    title: 'Trả Nhà Cung Cấp',
+    title: 'Giao Hàng Cũ',
     desc: 'Xuất hàng cũ',
     icon: SendToBack,
   },
@@ -2142,8 +2255,8 @@ const ALL_ACTIONS = [
     mode: 'THUONG',
     type: 'IMPORT',
     perm: 'FUNC_THUONG_NHAP',
-    title: 'Nhập Lô Hàng',
-    desc: 'Gửi hàng vào kho theo lô',
+    title: 'Nhập Theo Sản Phẩm',
+    desc: 'Gửi hàng thường',
     icon: ArrowDownToLine,
   },
   {
@@ -2151,8 +2264,8 @@ const ALL_ACTIONS = [
     mode: 'THUONG',
     type: 'EXPORT',
     perm: 'FUNC_THUONG_XUAT',
-    title: 'Xuất Kho',
-    desc: 'Xuất hàng trong kho',
+    title: 'Giao Hàng Thường',
+    desc: 'Xuất hàng thường',
     icon: ArrowUpFromLine,
   },
   {
@@ -2161,7 +2274,7 @@ const ALL_ACTIONS = [
     type: 'EXPORT_NOIBO',
     perm: 'FUNC_VIP_XUAT_MOI',
     title: 'Xuất Nội Bộ',
-    desc: 'Luân chuyển kho nội bộ',
+    desc: 'Chuyển hàng nội bộ',
     icon: ArrowUpFromLine,
   },
   {
@@ -2170,7 +2283,7 @@ const ALL_ACTIONS = [
     type: 'EXPORT_NOIBO',
     perm: 'FUNC_THUONG_XUAT',
     title: 'Xuất Nội Bộ',
-    desc: 'Luân chuyển kho nội bộ',
+    desc: 'Chuyển hàng nội bộ',
     icon: ArrowUpFromLine,
   },
 ];
@@ -2184,7 +2297,7 @@ const setCustomerMode = (mode) => {
     (a) => a.mode === mode && (isAdmin.value || authStore.hasPermission(a.perm))
   );
 
-  // ✅ LOGIC MỚI: Nếu đang làm Xuất Nội Bộ, cố gắng giữ nguyên nó ở Tab mới
+  // LOGIC MỚI: Nếu đang làm Xuất Nội Bộ, cố gắng giữ nguyên nó ở Tab mới
   if (oldAction.includes('NOIBO')) {
     const matchingNoiBo = actionsForNewMode.find((a) => a.id.includes('NOIBO'));
     if (matchingNoiBo) {
@@ -2308,7 +2421,7 @@ const isExportAction = computed(
   () => currentActionObj.value?.type === 'EXPORT'
 );
 
-// ✅ CHỈ GIỮ LẠI HÀM NÀY:
+// CHỈ GIỮ LẠI HÀM NÀY:
 const removeNoiBoItem = (index) => {
   if (form.value.noi_bo_items.length > 1)
     form.value.noi_bo_items.splice(index, 1);
@@ -2404,7 +2517,7 @@ const fetchCustomerInventory = async () => {
           customerInventory.value = res.data.data;
         }
       }
-      // ✅ 3. LUỒNG TRẢ NHÀ CUNG CẤP VIP (CŨ)
+      // 3. LUỒNG TRẢ NHÀ CUNG CẤP VIP (CŨ)
       else if (newAction === 'VIP_EXPORT_OLD') {
         const res = await inventoryService.getVipAvailableExportOld(
           currentUserKho.value
@@ -2448,13 +2561,16 @@ const autoFillItem = (item) => {
     });
 
     // ================================================================
-    // 🚨 BƯỚC KIỂM TRA (VALIDATION): CHẶN HÀNG THIẾU DỮ LIỆU QUAN TRỌNG
+    // BƯỚC KIỂM TRA (VALIDATION): CHẶN HÀNG THIẾU DỮ LIỆU QUAN TRỌNG
     // ================================================================
     if (customerMode.value === 'VIP') {
       if (
         !item.ma_bill ||
         item.ma_bill === 'N/A' ||
-        item.ma_bill.trim() === ''
+        item.ma_bill.trim() === '' ||
+        !item.tinh_thanh ||
+        item.tinh_thanh.trim() === '' ||
+        item.dia_chi_giao_hang.trim() === ''
       ) {
         toast.info(
           'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Bổ Sung Dữ Liệu" để cập nhật trước khi luân chuyển.'
@@ -2464,7 +2580,9 @@ const autoFillItem = (item) => {
       if (
         !item.ma_san_pham ||
         item.ma_san_pham === 'N/A' ||
-        item.ma_san_pham.trim() === ''
+        item.ma_san_pham.trim() === '' ||
+        item.tinh_thanh.trim() === '' ||
+        item.dia_chi_giao_hang.trim() === ''
       ) {
         toast.info(
           'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Bổ Sung Dữ Liệu" để cập nhật trước khi luân chuyển.'
@@ -2475,7 +2593,14 @@ const autoFillItem = (item) => {
       if (
         !item.ma_san_pham ||
         item.ma_san_pham === 'N/A' ||
-        item.ma_san_pham.trim() === ''
+        item.ma_san_pham.trim() === '' ||
+        !item.tinh_thanh ||
+        item.tinh_thanh.trim() === '' ||
+        !item.dia_chi_giao_hang ||
+        item.dia_chi_giao_hang.trim() === '' ||
+        !item.ma_bill ||
+        item.ma_bill === 'N/A' ||
+        item.ma_bill.trim() === ''
       ) {
         toast.info(
           'Missing: Thông tin chưa đầy đủ! Vui lòng chuyển sang "Bổ Sung Dữ Liệu" để cập nhật trước khi luân chuyển.'
@@ -2497,10 +2622,10 @@ const autoFillItem = (item) => {
       form.value.noi_bo_items = [];
     }
 
-    // ✅ TẠO TÊN SẢN PHẨM RÕ RÀNG (CÓ TAG MỚI/CŨ CHO VIP)
+    // TẠO TÊN SẢN PHẨM RÕ RÀNG (CÓ TAG MỚI/CŨ CHO VIP)
     let displayName = item.ten_san_pham;
     if (customerMode.value === 'VIP') {
-      displayName = 'N/A';
+      displayName = 'Hàng Toshiba';
     }
 
     form.value.noi_bo_items.push({
@@ -2525,16 +2650,22 @@ const autoFillItem = (item) => {
       rong: '',
       cao: '',
       kich_thuoc: '',
-      ghi_chu: '',
+      tinh_thanh: item.tinh_thanh || '',
+      dia_chi_giao_hang: item.dia_chi_giao_hang || '',
+      ghi_chu: item.ghi_chu || '',
     });
 
     toast.success(`Đã bốc vào giỏ luân chuyển.`);
     return;
   }
+
+  console.log(form.value);
   form.value.id = item.id;
   form.value.ma_kho_spl = item.ma_kho_spl || currentUserKho.value;
   form.value.ngay_nhap_kho_hien_thi = formatDate(item.ngay_nhap_gan_nhat);
   form.value.ghi_chu = item.ghi_chu || '';
+  form.value.tinh_thanh = item.tinh_thanh || '';
+  form.value.dia_chi_giao_hang = item.dia_chi_giao_hang || '';
 
   if (item.ma_bill) {
     form.value.ma_bill = item.ma_bill;
@@ -2593,6 +2724,8 @@ const resetForm = (isHardReset = false) => {
       ngay_nhap_kho_hien_thi: '',
       kho_nhan: '',
       doi_tac_van_chuyen: '',
+      dia_chi_giao_hang: '',
+      tinh_thanh: '',
       noi_bo_items: [
         {
           id_ton_kho: null, // Bổ sung
@@ -2620,6 +2753,8 @@ const resetForm = (isHardReset = false) => {
     currentData.ghi_chu = '';
     currentData.so_luong = null;
     currentData.so_kien = isExportAction.value ? '' : 1;
+    currentData.dia_chi_giao_hang = '';
+    currentData.tinh_thanh = '';
 
     if (customerMode.value === 'THUONG' || customerMode.value === 'LE') {
       currentData.id = '';
@@ -2661,7 +2796,7 @@ const resetForm = (isHardReset = false) => {
 watch(
   [currentAction, customerMode],
   ([newAction, newMode], [oldAction, oldMode]) => {
-    // ✅ BẢO VỆ GIỎ HÀNG: Nếu đang ở luồng Nội Bộ và chỉ đổi qua lại giữa các Tab (VIP <-> THUONG)
+    // BẢO VỆ GIỎ HÀNG: Nếu đang ở luồng Nội Bộ và chỉ đổi qua lại giữa các Tab (VIP <-> THUONG)
     if (
       newAction &&
       oldAction &&
@@ -2692,6 +2827,8 @@ const handleSubmit = async () => {
   form.value.ma_may = sanitizeText(form.value.ma_may);
   form.value.serial = sanitizeText(form.value.serial);
   form.value.ma_bill = sanitizeText(form.value.ma_bill);
+  form.value.dia_chi_giao_hang = sanitizeText(form.value.dia_chi_giao_hang);
+  form.value.tinh_thanh = sanitizeText(form.value.tinh_thanh);
 
   if (form.value.noi_bo_items && form.value.noi_bo_items.length > 0) {
     form.value.noi_bo_items.forEach((item) => {
@@ -2791,7 +2928,9 @@ const handleSubmit = async () => {
     }
 
     if (
-      ['VIP_IMPORT_NEW', 'VIP_EXPORT_NEW'].includes(currentAction.value) &&
+      ['VIP_IMPORT_NEW', 'VIP_IMPORT_OLD', 'VIP_EXPORT_NEW'].includes(
+        currentAction.value
+      ) &&
       !form.value.ma_san_pham
     ) {
       toast.error('Lỗi: Mã Sản Phẩm không được để trống!');
@@ -2850,6 +2989,8 @@ const handleSubmit = async () => {
         ghi_chu: form.value.ghi_chu,
         pxk_kho_tsb: form.value.pxk_kho_tsb,
         pxk_vp_tsb: form.value.pxk_vp_tsb,
+        dia_chi_giao_hang: form.value.dia_chi_giao_hang,
+        tinh_thanh: form.value.tinh_thanh,
         username: form.username,
         serial_moi: form.value.serial,
       };
@@ -2864,6 +3005,8 @@ const handleSubmit = async () => {
         ma_bill: form.value.ma_bill,
         ghi_chu: form.value.ghi_chu,
         serial_moi: form.value.serial,
+        dia_chi_giao_hang: form.value.dia_chi_giao_hang,
+        tinh_thanh: form.value.tinh_thanh,
       };
       await inventoryService.exportNewVip(payload);
     } else if (currentAction.value === 'VIP_IMPORT_OLD') {
@@ -2874,6 +3017,8 @@ const handleSubmit = async () => {
         ma_kho_spl: finalMaKhoSpl,
         ma_bill: form.value.ma_bill,
         ghi_chu: form.value.ghi_chu,
+        dia_chi_giao_hang: form.value.dia_chi_giao_hang,
+        tinh_thanh: form.value.tinh_thanh,
       };
       await inventoryService.importOldVip(payload);
     } else if (currentAction.value === 'VIP_EXPORT_OLD') {
@@ -2889,18 +3034,24 @@ const handleSubmit = async () => {
         kho_tra_hang: form.value.kho_tra_hang,
         nguoi_nhan: form.value.nguoi_nhan,
         ghi_chu: form.value.ghi_chu,
+        dia_chi_giao_hang: form.value.dia_chi_giao_hang,
+        tinh_thanh: form.value.tinh_thanh,
       };
+      // console.log(payload);
       await inventoryService.exportOldVip(payload);
     } else if (currentAction.value === 'THUONG_IMPORT') {
       payload = {
         id: form.value.id || 0,
         customer_id: form.value.customer_id,
         ma_kho_spl: finalMaKhoSpl,
+        ma_bill: form.value.ma_bill,
         ten_san_pham: form.value.ten_san_pham,
         ma_san_pham: form.value.ma_san_pham,
         so_luong: form.value.so_luong,
         so_kien: form.value.so_kien,
         ghi_chu: form.value.ghi_chu,
+        dia_chi_giao_hang: form.value.dia_chi_giao_hang,
+        tinh_thanh: form.value.tinh_thanh,
       };
       await inventoryService.importRegular(payload);
     } else if (currentAction.value === 'THUONG_EXPORT') {
@@ -2916,6 +3067,8 @@ const handleSubmit = async () => {
         ma_bill: form.value.ma_bill,
         ghi_chu: form.value.ghi_chu,
         so_kien: form.value.so_kien,
+        dia_chi_giao_hang: form.value.dia_chi_giao_hang,
+        tinh_thanh: form.value.tinh_thanh,
       };
       // console.log(payload);
       await inventoryService.exportRegular(payload);
@@ -2930,6 +3083,8 @@ const handleSubmit = async () => {
           ...item,
           kich_thuoc: kichThuocGop,
           ma_bill_item: item.ma_bill,
+          tinh_thanh: item.tinh_thanh,
+          dia_chi_giao_hang: item.dia_chi_giao_hang,
         };
       });
 

@@ -321,7 +321,7 @@ const inventoryCards = computed(() => [
     show: canApproveTransfer.value,
   },
   {
-    title: 'Bổ Sung Dữ Liệu',
+    title: 'Khai Thác Kho Hàng',
     description:
       'Chỉnh sửa, cập nhật số Serial, PXK cho các phiếu nhập còn thiếu.',
     route: '/inventory/update-info',

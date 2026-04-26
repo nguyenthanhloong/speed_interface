@@ -11,7 +11,7 @@
               <DatabaseZap class="icon-md text-primary" />
             </div>
             <div>
-              <h2 class="m-0 text-dark fw-bold">Bổ Sung Thông Tin Giao Dịch</h2>
+              <h2 class="m-0 text-dark fw-bold">Khai Thác Kho Hàng</h2>
             </div>
           </div>
         </div>
@@ -160,10 +160,21 @@
                       Thiếu PXK Kho
                     </span>
                     <span
-                      v-if="!item.ma_bill && actionType === 'VIP_IMPORT_OLD'"
+                      v-if="!item.ma_bill && actionType === 'THUONG_IMPORT'"
                       class="custom-badge badge-secondary"
                     >
                       Thiếu Mã Bill
+                    </span>
+                    <span
+                      v-if="!item.dia_chi_giao_hang || !item.tinh_thanh"
+                      class="custom-badge"
+                      style="
+                        background: #e0f2fe;
+                        color: #0284c7;
+                        border: 1px solid #bae6fd;
+                      "
+                    >
+                      Thiếu Địa Chỉ
                     </span>
                   </div>
                 </td>
@@ -282,14 +293,14 @@
         </div>
 
         <div class="modal-body p-4 bg-white">
-          <div class="alert-modern" style="margin-bottom: 1.5rem">
+          <!-- <div class="alert-modern" style="margin-bottom: 1.5rem">
             <div class="alert-icon">💡</div>
             <div class="alert-text">
               Chỉ có thể nhập vào các ô được đánh dấu
               <strong>Viền Xanh</strong>. Dữ liệu cũ đã được
               <strong>Khóa</strong> để bảo vệ tính toàn vẹn của hồ sơ kho.
             </div>
-          </div>
+          </div> -->
 
           <form @submit.prevent="submitUpdate">
             <div class="row g-4">
@@ -485,6 +496,8 @@ const formatFieldName = (key) => {
     pxk_vp_tsb: 'Phiếu Xuất VP TSB',
     ten_san_pham: 'Tên SP',
     ghi_chu: 'Ghi Chú',
+    dia_chi_giao_hang: 'Địa Chỉ Giao Hàng',
+    tinh_thanh: 'Tỉnh / Thành Phố',
   };
   return map[key] || key.replace(/_/g, ' ');
 };
@@ -661,7 +674,11 @@ const submitUpdate = async () => {
     id: editFormData.value.record_id || editFormData.value.id,
     mode: mode,
     action_type: actType,
-    data_to_update: dataToUpdate,
+    data_to_update: {
+      ...dataToUpdate,
+      dia_chi_giao_hang: editFormData.value.dia_chi_giao_hang || null,
+      tinh_thanh: editFormData.value.tinh_thanh || null,
+    },
   };
 
   try {
@@ -969,7 +986,6 @@ watch(actionType, () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
 }
 
 .page-header {

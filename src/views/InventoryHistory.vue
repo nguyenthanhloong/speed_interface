@@ -224,7 +224,13 @@
                     </button>
                   </div>
                 </th>
-                <th width="140" class="text-center sticky-right">Thao Tác</th>
+                <th
+                  v-if="isExportAction"
+                  width="140"
+                  class="text-center sticky-right"
+                >
+                  Thao Tác
+                </th>
               </tr>
             </thead>
 
@@ -292,6 +298,13 @@
                       <div class="text-center w-100">
                         <input
                           type="checkbox"
+                          v-if="
+                            canDownloadExcel &&
+                            isExportAction &&
+                            (currentMode !== 'NOIBO' ||
+                              (item.trang_thai !== 'PENDING_SOURCE' &&
+                                item.trang_thai !== 'REJECTED_SOURCE'))
+                          "
                           style="width: 16px; height: 16px; cursor: pointer"
                           :value="
                             currentMode === 'VIP'
@@ -310,10 +323,13 @@
                         >Hoàn tất</span
                       >
                       <span
-                        v-else-if="item.trang_thai === 'REJECTED_SOURCE'"
+                        v-else-if="
+                          item.trang_thai === 'REJECTED_SOURCE' ||
+                          item.trang_thai === 'REJECTED_DESTINATION'
+                        "
                         class="badge"
                         style="background-color: #ef4444; color: white"
-                        >Hủy (Kho Xuất)</span
+                        >Hủy</span
                       >
                       <span
                         v-else
@@ -341,7 +357,7 @@
                     <template
                       v-else-if="col.key === 'ma_may' || col.key === 'ma_bill'"
                     >
-                      <strong>{{ item[col.key] || 'N/A' }}</strong>
+                      <strong>{{ item[col.key] || '-' }}</strong>
                     </template>
                     <template v-else-if="col.key === 'so_luong'">
                       <span
@@ -371,6 +387,19 @@
                     <template v-else-if="col.key === 'ma_kho_spl'">
                       <span class="badge">{{ item.ma_kho_spl || 'N/A' }}</span>
                     </template>
+
+                    <template v-else-if="col.key === 'dia_chi_giao_hang'">
+                      <div
+                        style="
+                          min-width: 200px;
+                          white-space: pre-wrap;
+                          word-break: break-word;
+                        "
+                      >
+                        {{ item.dia_chi_giao_hang || '-' }}
+                      </div>
+                    </template>
+
                     <template v-else-if="col.key === 'ghi_chu'">
                       <div
                         style="
@@ -389,7 +418,10 @@
                 </template>
 
                 <td
-                  v-if="currentMode !== 'NOIBO' || item.isFirstOfGroup"
+                  v-if="
+                    (currentMode !== 'NOIBO' || item.isFirstOfGroup) &&
+                    isExportAction
+                  "
                   :rowspan="currentMode === 'NOIBO' ? item.rowspan : 1"
                   class="text-center sticky-right"
                 >
@@ -642,6 +674,8 @@ const actionType = ref('IMPORT_NEW');
 const tableData = ref([]);
 const isLoading = ref(false);
 
+console.log(tableData);
+
 const currentPage = ref(1);
 const limit = ref(10);
 const totalItems = ref(0);
@@ -768,7 +802,9 @@ const allColumnsConfig = computed(() => {
       cols.push({ key: 'serial', label: 'Số Serial', width: 180 });
       if (
         actionType.value === 'IMPORT_NEW' ||
-        actionType.value === 'EXPORT_NEW'
+        actionType.value === 'IMPORT_OLD' ||
+        actionType.value === 'EXPORT_NEW' ||
+        actionType.value === 'EXPORT_OLD'
       )
         cols.push({ key: 'ma_san_pham', label: 'Mã Sản Phẩm', width: 150 });
       if (actionType.value === 'IMPORT_NEW') {
@@ -781,7 +817,11 @@ const allColumnsConfig = computed(() => {
       cols.push({ key: 'so_kien', label: 'Số Kiện', width: 100 });
     }
     cols.push({ key: 'ma_kho_spl', label: 'Mã Kho (SPL)', width: 130 });
-    if (currentMode.value === 'VIP' || actionType.value.includes('EXPORT'))
+    if (
+      currentMode.value === 'VIP' ||
+      actionType.value.includes('EXPORT') ||
+      currentMode.value === 'THUONG'
+    )
       cols.push({ key: 'ma_bill', label: 'Mã Bill / Vận Đơn', width: 180 });
     if (isExportAction.value) {
       cols.push({ key: 'nv_giao_hang', label: 'NV Giao Hàng', width: 180 });
@@ -795,6 +835,13 @@ const allColumnsConfig = computed(() => {
 
   cols.push({ key: 'nv_nhap_lieu', label: 'NV Nhập Liệu', width: 160 });
   cols.push({ key: 'ghi_chu', label: 'Ghi Chú', width: 250 });
+
+  cols.push({
+    key: 'dia_chi_giao_hang',
+    label: 'Địa Chỉ Giao Hàng',
+    width: 250,
+  });
+  cols.push({ key: 'tinh_thanh', label: 'Tỉnh/Thành Phố', width: 150 });
 
   if (isExportAction.value && currentMode.value !== 'NOIBO')
     cols.push({ key: 'ngay_nhap_kho', label: 'Ngày Nhập Kho', width: 180 });
@@ -998,6 +1045,7 @@ const fetchData = async () => {
                 id: child.id,
                 ma_san_pham: child.ma_sp_hoac_id,
                 nv_giao_hang: bill.tai_xe,
+                ghi_chu: bill.ghi_chu,
 
                 // --- THÊM LOGIC UI CHO GOM NHÓM ---
                 rowspan: idx === 0 ? itemsCount : 0, // Chỉ dòng đầu tiên mới có rowspan

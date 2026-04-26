@@ -65,7 +65,7 @@ export const inventoryService = {
 
     getUnreadNotifications: () => apiClient.get('/api/notifications/unread', { hideLoading: true }),
 
-    markNotificationRead: (id) => apiClient.put(`/api/notifications/${id}/read`),
+    markNotificationRead: (id) => apiClient.put(`/api/notifications/${id}/read`, { hideLoading: true }),
 
     downloadFileToFix: (actionType) => apiClient.get(`/api/warehouse/export-for-standardize?loai_phieu=${actionType}`, { responseType: 'blob' }),
 
