@@ -1291,7 +1291,8 @@
                               type="text"
                               v-model="item.ma_bill"
                               class="form-control"
-                              required
+                              disabled
+                              style="background: #f1f5f9; font-weight: bold"
                             />
                           </div>
 
