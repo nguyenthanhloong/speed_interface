@@ -196,6 +196,7 @@
                       currentMode === 'VIP' ? 'Phân Loại Hàng' : 'Tên Sản Phẩm'
                     }}
                   </th>
+                  <th>Kho</th>
                   <th class="text-right">Tổng Nhập</th>
                   <th class="text-right">Tổng Xuất</th>
                   <th class="text-right">Tồn Kho</th>
@@ -227,6 +228,19 @@
                       {{ item.ten_san_pham }}
                     </span>
                     <span v-else>{{ item.ten_san_pham }}</span>
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge"
+                      style="
+                        background-color: #e2e8f0;
+                        color: #475569;
+                        font-size: 0.85rem;
+                      "
+                    >
+                      {{ item.ma_kho_spl || '---' }}
+                    </span>
                   </td>
 
                   <td class="text-right text-success">
@@ -361,24 +375,13 @@ const canSwitchMode = computed(() => {
   return accessibleTabs.length > 1;
 });
 
-// ==============================================================
-// KHÔI PHỤC TÍNH TỔNG CHO KHO THƯỜNG / LẺ
-// ==============================================================
-const totalImport = computed(() =>
-  inventoryData.value.reduce((sum, item) => sum + item.tong_nhap, 0)
-);
-const totalExport = computed(() =>
-  inventoryData.value.reduce((sum, item) => sum + item.tong_xuat, 0)
-);
+const totalImport = ref(0);
+const totalExport = ref(0);
+
 const totalStock = computed(() =>
   inventoryData.value.reduce((sum, item) => sum + item.ton_kho, 0)
 );
 
-// XÓA BỎ computed totalKienStock
-
-// ==============================================================
-// TÁCH BÓC CHỈ SỐ KINH DOANH CHO VIP (HÀNG MỚI VÀ HÀNG CŨ)
-// ==============================================================
 const totalStockNew = computed(() =>
   inventoryData.value
     .filter((i) => i.loai === 'MỚI')
@@ -443,6 +446,9 @@ const fetchData = async () => {
   isLoading.value = true;
   inventoryData.value = [];
 
+  totalImport.value = 0;
+  totalExport.value = 0;
+
   try {
     let response;
     if (currentMode.value === 'THUONG')
@@ -450,9 +456,13 @@ const fetchData = async () => {
     else if (currentMode.value === 'VIP')
       response = await inventoryService.getInventoryVip();
 
-    if (response) inventoryData.value = response.data.data;
+    if (response && response.data) {
+      inventoryData.value = response.data.data;
+      // Gán trực tiếp giá trị lịch sử từ Backend
+      totalImport.value = response.data.tong_nhap_lich_su || 0;
+      totalExport.value = response.data.tong_xuat_lich_su || 0;
+    }
   } catch (error) {
-    // console.error('Lỗi tải tồn kho:', error);
     toast.error('Không thể tải dữ liệu tồn kho!');
   } finally {
     isLoading.value = false;
