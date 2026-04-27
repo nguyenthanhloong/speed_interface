@@ -835,9 +835,10 @@ watch(actionType, () => {
 
 /* Badges */
 .custom-badge {
-  padding: 6px 12px;
+  padding: 6px 8px;
+  margin-right: 6px;
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 700;
   box-shadow: var(--shadow-sm);
 }
