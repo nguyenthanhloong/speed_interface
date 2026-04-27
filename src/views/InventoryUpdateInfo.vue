@@ -160,6 +160,12 @@
                       Thiếu PXK Kho
                     </span>
                     <span
+                      v-if="!item.ma_bill && actionType === 'VIP_IMPORT_NEW'"
+                      class="custom-badge badge-danger"
+                    >
+                      Thiếu Mã Bill
+                    </span>
+                    <span
                       v-if="!item.ma_bill && actionType === 'THUONG_IMPORT'"
                       class="custom-badge badge-secondary"
                     >
