@@ -90,14 +90,14 @@
           :class="['btn-tab', { active: customerMode === 'VIP' }]"
           @click="setCustomerMode('VIP')"
         >
-          Khách VIP
+          Khách TOSHIBA
         </button>
         <button
           v-if="canViewThuong"
           :class="['btn-tab', { active: customerMode === 'THUONG' }]"
           @click="setCustomerMode('THUONG')"
         >
-          Khách Thường
+          Khách Nội Bộ
         </button>
       </div>
 
@@ -1729,7 +1729,7 @@ const downloadImportTemplate = () => {
         'Mẫu nhập VIP',
       ],
     ];
-    filename = 'Bieu_Mau_Nhap_VIP.xlsx';
+    filename = 'Bieu_Mau_Nhap_HANG_MOI.xlsx';
   } else if (currentAction.value === 'VIP_IMPORT_OLD') {
     ws_data = [
       [
@@ -1751,7 +1751,7 @@ const downloadImportTemplate = () => {
         'Khách trả hàng',
       ],
     ];
-    filename = 'Bieu_Mau_Nhap_Cu_VIP.xlsx';
+    filename = 'Bieu_Mau_Nhap_HANG_CU.xlsx';
   } else if (currentAction.value === 'THUONG_IMPORT') {
     ws_data = [
       [

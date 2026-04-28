@@ -33,13 +33,11 @@
                   class="form-control modern-select bg-light"
                 >
                   <optgroup label="Khách VIP">
-                    <option value="VIP_IMPORT_NEW">Nhập Hàng Mới (VIP)</option>
-                    <option value="VIP_IMPORT_OLD">
-                      Nhập Hàng Trả Lại (VIP)
-                    </option>
+                    <option value="VIP_IMPORT_NEW">Nhập Hàng Mới</option>
+                    <option value="VIP_IMPORT_OLD">Nhập Hàng Cũ</option>
                   </optgroup>
                   <optgroup label="Khách Thường">
-                    <option value="THUONG_IMPORT">Nhập Kho (Thường)</option>
+                    <option value="THUONG_IMPORT">Nhập Theo Sản Phẩm</option>
                   </optgroup>
                 </select>
               </div>
@@ -86,7 +84,9 @@
                 <Download class="icon-sm mr-2" v-if="!isDownloadingExcel" />
                 <RefreshCw class="icon-sm spin mr-2" v-else />
                 {{
-                  isDownloadingExcel ? 'Đang tạo file...' : '1. Xuất File Sửa'
+                  isDownloadingExcel
+                    ? 'Đang tạo file...'
+                    : '1. Tải Xuống File Sửa'
                 }}
               </button>
 
@@ -97,7 +97,9 @@
               >
                 <Upload class="icon-sm mr-2" v-if="!isUploadingExcel" />
                 <RefreshCw class="icon-sm spin mr-2" v-else />
-                {{ isUploadingExcel ? 'Đang cập nhật...' : '2. Nhập Lại File' }}
+                {{
+                  isUploadingExcel ? 'Đang cập nhật...' : '2. Tải Lên File Sửa'
+                }}
               </button>
               <input
                 type="file"
@@ -158,12 +160,6 @@
                       class="custom-badge badge-danger"
                     >
                       Thiếu PXK Kho
-                    </span>
-                    <span
-                      v-if="!item.ma_bill && actionType === 'VIP_IMPORT_NEW'"
-                      class="custom-badge badge-danger"
-                    >
-                      Thiếu Mã Bill
                     </span>
                     <span
                       v-if="!item.ma_bill && actionType === 'THUONG_IMPORT'"
@@ -835,10 +831,9 @@ watch(actionType, () => {
 
 /* Badges */
 .custom-badge {
-  padding: 6px 8px;
-  margin-right: 6px;
+  padding: 6px 12px;
   border-radius: 8px;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 700;
   box-shadow: var(--shadow-sm);
 }

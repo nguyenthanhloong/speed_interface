@@ -45,14 +45,7 @@
           <button
             @click="downloadTemplate"
             class="btn btn-outline-primary"
-            style="
-              display: flex;
-              gap: 5px;
-              align-items: center;
-              border: 1px solid #3b82f6;
-              color: #3b82f6;
-              background-color: #eff6ff;
-            "
+            style="display: flex; gap: 5px; align-items: center"
           >
             <Download class="icon-sm" /> Tải Biểu Mẫu
           </button>

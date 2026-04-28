@@ -21,14 +21,14 @@
           :class="['btn-tab', { active: currentMode === 'VIP' }]"
           @click="currentMode = 'VIP'"
         >
-          Khách VIP
+          Khách TOSHIBA
         </button>
         <button
           v-if="hasRegularAccess"
           :class="['btn-tab', { active: currentMode === 'THUONG' }]"
           @click="currentMode = 'THUONG'"
         >
-          Khách Thường
+          Khách Nội Bộ
         </button>
       </div>
 
@@ -64,7 +64,7 @@
           <div class="summary-card">
             <div class="card-icon bg-orange"><RefreshCw class="icon-md" /></div>
             <div class="card-info">
-              <p class="card-label">Tồn Kho (KHÁCH TRẢ)</p>
+              <p class="card-label">Tồn Kho (HÀNG CŨ)</p>
               <h3 class="card-value text-warning">
                 {{ totalStockOld.toLocaleString() }} <small>Máy</small>
               </h3>
@@ -84,7 +84,7 @@
               <ArrowUpFromLine class="icon-md" />
             </div>
             <div class="card-info">
-              <p class="card-label">Lịch sử Tổng Xuất</p>
+              <p class="card-label">Lịch sử Tổng Giao</p>
               <h3 class="card-value">{{ totalExport.toLocaleString() }}</h3>
             </div>
           </div>
@@ -114,7 +114,7 @@
               <ArrowUpFromLine class="icon-md" />
             </div>
             <div class="card-info">
-              <p class="card-label">Tổng Lượng Đã Xuất</p>
+              <p class="card-label">Tổng Lượng Đã Giao</p>
               <h3 class="card-value">{{ totalExport.toLocaleString() }}</h3>
             </div>
           </div>
@@ -135,7 +135,7 @@
         >
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="m-0" style="font-size: 1.1rem; color: #1e293b">
-              Biểu đồ Lưu chuyển Hàng hóa ({{ currentMode }})
+              Biểu đồ Lưu chuyển Hàng hóa
             </h3>
             <select
               v-model="chartTimeRange"
@@ -418,10 +418,10 @@ const fetchChartData = async () => {
           colors: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444'],
         };
         chartSeries.value = [
-          { name: 'Nhập Mới', data: data.datasets.nhap_moi },
-          { name: 'Nhập Cũ (Khách trả)', data: data.datasets.nhap_cu },
-          { name: 'Xuất Mới (Giao Khách)', data: data.datasets.xuat_moi },
-          { name: 'Xuất Cũ (Trả NCC)', data: data.datasets.xuat_cu },
+          { name: 'Nhập Hàng Mới', data: data.datasets.nhap_moi },
+          { name: 'Nhập Hàng Cũ', data: data.datasets.nhap_cu },
+          { name: 'Giao Hàng Mới', data: data.datasets.xuat_moi },
+          { name: 'Giao Hàng Cũ', data: data.datasets.xuat_cu },
         ];
       } else {
         chartOptions.value = {

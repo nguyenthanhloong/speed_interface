@@ -23,14 +23,14 @@
           :class="['btn-tab', { active: currentMode === 'VIP' }]"
           @click="currentMode = 'VIP'"
         >
-          Khách VIP
+          Khách TOSHIBA
         </button>
         <button
           v-if="canViewThuong"
           :class="['btn-tab', { active: currentMode === 'THUONG' }]"
           @click="currentMode = 'THUONG'"
         >
-          Khách Thường
+          Khách Nội Bộ
         </button>
         <button
           v-if="canViewNoiBo"
@@ -57,21 +57,21 @@
                 :class="{ active: actionType === 'EXPORT_NEW' }"
                 @click="actionType = 'EXPORT_NEW'"
               >
-                Xuất Giao Hàng
+                Giao Hàng Mới
               </button>
               <button
                 class="filter-btn"
                 :class="{ active: actionType === 'IMPORT_OLD' }"
                 @click="actionType = 'IMPORT_OLD'"
               >
-                Khách Trả Cũ
+                Nhập Hàng Cũ
               </button>
               <button
                 class="filter-btn"
                 :class="{ active: actionType === 'EXPORT_OLD' }"
                 @click="actionType = 'EXPORT_OLD'"
               >
-                Xuất Trả Cũ
+                Giao Hàng Cũ
               </button>
             </template>
             <template v-else-if="currentMode === 'NOIBO'">
@@ -80,7 +80,7 @@
                 :class="{ active: actionType === 'EXPORT_NOIBO' }"
                 @click="actionType = 'EXPORT_NOIBO'"
               >
-                Lịch Sử Xuất Nội Bộ
+                Xuất Nội Bộ
               </button>
             </template>
             <template v-else>
@@ -89,14 +89,14 @@
                 :class="{ active: actionType === 'IMPORT' }"
                 @click="actionType = 'IMPORT'"
               >
-                Lịch Sử Nhập Kho
+                Nhập Hàng
               </button>
               <button
                 class="filter-btn"
                 :class="{ active: actionType === 'EXPORT' }"
                 @click="actionType = 'EXPORT'"
               >
-                Lịch Sử Xuất Kho
+                Giao Hàng
               </button>
             </template>
           </div>
