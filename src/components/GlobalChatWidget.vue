@@ -63,7 +63,7 @@
               <button
                 v-if="msg.isMine && !msg.isDeleted"
                 class="btn-delete-msg"
-                @click="confirmDelete(msg.id)"
+                @click="recallMessage(msg.id)"
                 title="Thu hồi tin nhắn"
               >
                 <svg
@@ -183,6 +183,7 @@ import { ref, nextTick, onUnmounted, computed, watch } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { chatService } from '../services/chat';
 import apiClient from '../utils/axios';
+import { useToast } from '../composables/useToast';
 
 import EmojiPicker from 'vue3-emoji-picker';
 import 'vue3-emoji-picker/css';
@@ -202,6 +203,8 @@ let socket = null;
 const nextCursor = ref(null);
 const isLoadingMore = ref(false);
 const hasMore = ref(true);
+
+const toast = useToast();
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
@@ -344,16 +347,12 @@ const handleScroll = (e) => {
   }
 };
 
-const confirmDelete = async (msgId) => {
-  if (confirm('Bạn có chắc chắn muốn thu hồi tin nhắn này?')) {
-    try {
-      await chatService.deleteMessage(msgId);
-      // Gọi API thành công, Server sẽ bắn WebSocket 'delete_message' về cho toàn bộ công ty.
-      // Dòng code socket.onmessage của bạn sẽ tự động hứng và đổi text trên UI!
-    } catch (error) {
-      console.error('Lỗi khi thu hồi tin nhắn:', error);
-      alert('Không thể thu hồi tin nhắn lúc này.');
-    }
+const recallMessage = async (msgId) => {
+  try {
+    await chatService.deleteMessage(msgId);
+  } catch (error) {
+    // console.error('Lỗi khi thu hồi tin nhắn:', error);
+    toast.error('Không thể thu hồi tin nhắn. Vui lòng thử lại.');
   }
 };
 
